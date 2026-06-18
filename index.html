@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Значки — Просчёт Польша</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; }
+    .header h1 { font-size: 20px; font-weight: 600; }
+    .rate-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; background: #fff; border: 1px solid #e0e0de; border-radius: 8px; padding: 7px 14px; }
+    .rate-val { font-weight: 600; color: #1a1a1a; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; flex-shrink: 0; }
+    .dot.ok { background: #3B6D11; }
+
+    .card { background: #fff; border: 1px solid #e0e0de; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .card-title { font-size: 13px; font-weight: 600; color: #777; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+    label.lbl { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: 500; }
+    select, input[type="number"] {
+      width: 100%; padding: 8px 10px; border: 1px solid #d4d4d2; border-radius: 8px;
+      font-size: 14px; color: #1a1a1a; background: #fafaf9; outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus { border-color: #5a4ecf; background: #fff; }
+
+    .result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.25rem; }
+    .big-metric { background: #f5f5f3; border-radius: 10px; padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 4px; }
+    .big-metric.accent { background: #eeedfe; }
+    .big-metric .bm-label { font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .big-metric.accent .bm-label { color: #7f77dd; }
+    .big-metric .bm-val { font-size: 28px; font-weight: 700; color: #1a1a1a; line-height: 1.1; }
+    .big-metric.accent .bm-val { color: #3c3489; }
+    .big-metric .bm-sub { font-size: 13px; color: #999; }
+    .big-metric.accent .bm-sub { color: #9b92e8; }
+
+    .metrics-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 0; }
+    .metric { background: #f9f9f8; border: 1px solid #ebebea; border-radius: 8px; padding: 0.8rem 1rem; }
+    .metric .mlabel { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .metric .mval { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
+    th { background: #f5f5f3; color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 9px 12px; text-align: right; border-bottom: 1px solid #e8e8e5; }
+    th:first-child { text-align: left; }
+    td { padding: 9px 12px; text-align: right; border-bottom: 1px solid #f0f0ee; color: #1a1a1a; }
+    td:first-child { text-align: left; color: #666; font-weight: 500; }
+    tr:last-child td { border-bottom: none; }
+    tr.active-row td { background: #eeedfe; color: #3c3489; font-weight: 600; }
+    tr.active-row td:first-child { color: #3c3489; }
+
+    .footer { font-size: 12px; color: #999; margin-top: 1rem; line-height: 1.6; }
+    .price-hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Значки — просчёт Польша</h1>
+    <div class="rate-badge">
+      <div class="dot" id="dot"></div>
+      <span>1 PLN =</span>
+      <span class="rate-val" id="rateDisp">загрузка...</span>
+      <span>UAH</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Параметры</div>
+    <div class="controls">
+      <div>
+        <label class="lbl">Размер значка</label>
+        <select id="size">
+          <option value="3">до 3 см²</option>
+          <option value="6">до 6 см²</option>
+          <option value="9" selected>до 9 см²</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">Покрытие</label>
+        <select id="coat">
+          <option value="nickel" selected>Никель</option>
+          <option value="gold">Золото</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">Тираж, шт</label>
+        <input type="number" id="qty" value="150" min="1" step="1" placeholder="напр. 194" />
+        <div class="price-hint" id="priceHint"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- главный результат -->
+  <div class="result-row">
+    <div class="big-metric">
+      <div class="bm-label">Цена за 1 шт</div>
+      <div class="bm-val" id="pricePln">—</div>
+      <div class="bm-sub">PLN / шт</div>
+    </div>
+    <div class="big-metric accent">
+      <div class="bm-label">Итого за тираж</div>
+      <div class="bm-val" id="totalPln">—</div>
+      <div class="bm-sub" id="totalPlnSub">PLN</div>
+    </div>
+  </div>
+
+  <!-- детали -->
+  <div class="card">
+    <div class="card-title">Детали расчёта</div>
+    <div class="metrics-row">
+      <div class="metric">
+        <div class="mlabel">Прайс</div>
+        <div class="mval" id="priceBase">—</div>
+      </div>
+      <div class="metric">
+        <div class="mlabel">× 1.23</div>
+        <div class="mval" id="priceFinal">—</div>
+      </div>
+      <div class="metric">
+        <div class="mlabel">Итого грн</div>
+        <div class="mval" id="totalUah">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Справочная таблица тиражей</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Тираж</th>
+            <th>Грн / шт</th>
+            <th>× 1.23</th>
+            <th>PLN / шт</th>
+            <th>Итого PLN</th>
+            <th>Итого грн</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div id="rateInfo">Загрузка курса...</div>
+  </div>
+
+</div>
+
+<script>
+const PRICES = {
+  "3": {
+    nickel: {1:1000,10:215,20:130,30:105,50:80,100:76,150:72,200:68,300:62,500:61,1000:59},
+    gold:   {1:1000,10:298,20:195,30:183,50:148,100:140,150:133,200:129,300:123,500:118,1000:113}
+  },
+  "6": {
+    nickel: {1:1000,10:215,20:130,30:105,50:83,100:79,150:75,200:71,300:65,500:64,1000:62},
+    gold:   {1:1000,10:298,20:195,30:183,50:154,100:146,150:138,200:134,300:128,500:123,1000:117}
+  },
+  "9": {
+    nickel: {1:1000,10:215,20:130,30:105,50:85,100:81,150:77,200:72,300:67,500:66,1000:64},
+    gold:   {1:1000,10:298,20:195,30:183,50:163,100:154,150:146,200:142,300:136,500:130,1000:124}
+  }
+};
+const QTYS = [1,10,20,30,50,100,150,200,300,500,1000];
+const LOGI = 450;
+let rate = null;
+
+function getPriceForQty(priceMap, qty) {
+  const steps = QTYS.filter(q => q <= qty);
+  const step = steps.length ? steps[steps.length - 1] : QTYS[0];
+  return { price: priceMap[step], step };
+}
+
+function formatPrice(value) {
+  if (value === undefined || value === null || !isFinite(value)) return '—';
+  if (Math.abs(value - Math.round(value)) < 1e-9) {
+    return Math.round(value).toString();
+  }
+  return value.toFixed(2);
+}
+
+async function fetchRate() {
+  try {
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/PLN');
+    const d = await r.json();
+    rate = d.rates.UAH;
+    document.getElementById('rateDisp').textContent = rate.toFixed(4);
+    document.getElementById('dot').classList.add('ok');
+    document.getElementById('rateInfo').textContent =
+      'Источник: ExchangeRate-API · дата котировки: ' + d.date + ' · задержка ~1 час';
+  } catch(e) {
+    rate = 12.28;
+    document.getElementById('rateDisp').textContent = rate.toFixed(4) + ' ⚠ резерв';
+    document.getElementById('rateInfo').textContent =
+      '⚠ Не удалось загрузить курс онлайн — используется резервное значение 12.28 UAH/PLN.';
+  }
+  render();
+}
+
+function render() {
+  if (!rate) return;
+  const size = document.getElementById('size').value;
+  const coat = document.getElementById('coat').value;
+  const qty = parseInt(document.getElementById('qty').value) || 0;
+  if (qty < 1) return;
+
+  const priceMap = PRICES[size][coat];
+  const { price: base, step } = getPriceForQty(priceMap, qty);
+  const logiUnit = LOGI / qty;
+  const sum = base + logiUnit;
+  const final = sum * 1.23;
+  const plnUnit = final / rate;
+  const plnTotal = plnUnit * qty;
+  const uahTotal = final * qty;
+
+  const hint = document.getElementById('priceHint');
+  if (step !== qty) {
+    hint.textContent = 'Прайс по ступени ' + step + ' шт';
+  } else {
+    hint.textContent = '';
+  }
+
+  document.getElementById('priceBase').textContent = base + ' грн/шт';
+  document.getElementById('priceFinal').textContent = final.toFixed(2) + ' грн/шт';
+  document.getElementById('totalUah').textContent = Math.round(uahTotal).toLocaleString('ru') + ' грн';
+  
+  // Цена за 1 шт: округляем до 2 знаков
+  const pricePerUnit = Math.round(plnUnit * 100) / 100;
+  // Итог: цена за шт × тираж (используем округлённую цену)
+  const totalFromRounded = pricePerUnit * qty;
+  
+  document.getElementById('pricePln').textContent = pricePerUnit.toFixed(2);
+  document.getElementById('totalPln').textContent = formatPrice(totalFromRounded);
+  document.getElementById('totalPlnSub').textContent = 'PLN за ' + qty + ' шт';
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  QTYS.forEach(q => {
+    const b = priceMap[q];
+    const lu = LOGI / q;
+    const s = b + lu;
+    const f = s * 1.23;
+    const pln = f / rate;
+    const ptotal = pln * q;
+    const gtotal = f * q;
+    const isActive = (q === step && qty !== step) ? false : (q === qty);
+    const isStepRow = (q === step && qty !== step);
+    const tr = document.createElement('tr');
+    if (isActive) tr.className = 'active-row';
+    if (isStepRow) tr.style.background = '#f0eefd';
+    
+    // Для таблицы также округляем цену за шт до 2 знаков и пересчитываем итог
+    const plnRounded = Math.round(pln * 100) / 100;
+    const ptotalRounded = plnRounded * q;
+    
+    tr.innerHTML =
+      `<td>${q} шт${isStepRow ? ' ←' : ''}</td>` +
+      `<td>${b} грн</td>` +
+      `<td>${f.toFixed(1)} грн</td>` +
+      `<td>${plnRounded.toFixed(2)}</td>` +
+      `<td>${formatPrice(ptotalRounded)}</td>` +
+      `<td>${formatPrice(gtotal)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+['size','coat'].forEach(id =>
+  document.getElementById(id).addEventListener('change', render)
+);
+document.getElementById('qty').addEventListener('input', render);
+
+fetchRate();
+</script>
+</body>
+</html>
